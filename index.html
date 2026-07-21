@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAY.MAIL - Temporary Email</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- NEO-BRUTALISM BLUE THEME --- */
+        :root { 
+            --bg-color: #e0f2fe;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --primary: #3b82f6; 
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border-width: 3px;
+            --border-color: #000000;
+            --shadow-color: #000000;
+            --shadow-large: 6px 6px 0px var(--shadow-color);
+            --shadow-small: 3px 3px 0px var(--shadow-color);
+            --transition: all 0.2s ease-in-out;
+            --font-main: 'Space Grotesk', sans-serif;
+        }
+        
+        body.dark-mode { 
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --border-color: #ffffff;
+            --shadow-color: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
+        
+        body { 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            transition: background-color 0.3s;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            font-size: 15px;
+        }
+
+        h1, h2, h3, h4 { font-weight: 700; color: var(--text-main); }
+        button, input { font-family: var(--font-main); outline: none; }
+        
+        /* --- COMPONENTS --- */
+        .brutal-box {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-large);
+            border-radius: 8px;
+        }
+
+        .brutal-btn {
+            background: var(--primary); color: #ffffff;
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-small);
+            padding: 12px 24px; font-weight: 700; font-size: 1rem;
+            cursor: pointer; border-radius: 6px; transition: var(--transition);
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        
+        .brutal-btn:hover:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--shadow-color); }
+        .brutal-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); color: #000; }
+        .btn-outline { background: var(--card-bg); color: var(--text-main); }
+        .btn-small { padding: 8px 16px; font-size: 0.85rem; box-shadow: 2px 2px 0px var(--shadow-color); }
+        .btn-small:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0px var(--shadow-color); }
+
+        .brutal-input {
+            width: 100%; padding: 10px 15px; font-size: 1rem; font-weight: 600;
+            border: var(--border-width) solid var(--border-color);
+            border-radius: 6px; background: var(--card-bg); color: var(--text-main);
+            box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+        .brutal-input:not([readonly]):focus { border-color: var(--primary); box-shadow: var(--shadow-small); }
+        .brutal-input[readonly] { background: rgba(0,0,0,0.05); cursor: not-allowed; color: var(--text-muted); }
+        body.dark-mode .brutal-input[readonly] { background: rgba(255,255,255,0.05); }
+
+        /* --- HEADER --- */
+        header { padding: 15px 0; background: var(--card-bg); border-bottom: var(--border-width) solid var(--border-color); }
+        .header-content { max-width: 700px; margin: 0 auto; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .logo i { color: var(--primary); }
+
+        .theme-toggle {
+            background: var(--card-bg); border: var(--border-width) solid var(--border-color);
+            color: var(--text-main); width: 40px; height: 40px; border-radius: 6px;
+            cursor: pointer; font-size: 1.1rem; box-shadow: 2px 2px 0px var(--shadow-color);
+            display: flex; justify-content: center; align-items: center; transition: var(--transition);
+        }
+        .theme-toggle:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0px var(--shadow-color); }
+
+        /* --- MAIN LAYOUT --- */
+        .container { max-width: 700px; margin: 0 auto; padding: 25px 15px; flex: 1; width: 100%; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { padding: 15px; display: flex; align-items: center; gap: 15px; }
+        .stat-icon { width: 45px; height: 45px; border: 2px solid var(--border-color); border-radius: 6px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; background: var(--card-bg); }
+        .stat-info h4 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+        .stat-info span { font-size: 1.4rem; font-weight: 700; }
+
+        /* Views */
+        .mail-empty { padding: 40px 20px; text-align: center; }
+        .mail-empty i.fa-paper-plane { font-size: 4rem; color: var(--primary); margin-bottom: 20px; }
+        .mail-empty h2 { margin-bottom: 10px; font-size: 1.5rem; }
+        .mail-empty p { margin-bottom: 25px; color: var(--text-muted); font-size: 1rem; }
+        .empty-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+
+        .mail-active { display: none; padding: 20px; }
+        
+        .email-display-box { 
+            background: rgba(59, 130, 246, 0.1); border: var(--border-width) solid var(--border-color); 
+            padding: 15px 20px; border-radius: 6px; margin-bottom: 25px; 
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .email-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: block; }
+        
+        .input-group-row { display: flex; gap: 10px; width: 100%; align-items: center; }
+
+        .inbox-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
+        .pulse-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; border: 1px solid var(--border-color); }
+        .refresh-status { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; }
+
+        .inbox-list { display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 5px; margin-bottom: 20px; }
+        .inbox-list::-webkit-scrollbar { width: 6px; }
+        .inbox-list::-webkit-scrollbar-thumb { background: var(--border-color); }
+
+        .msg-item { padding: 15px; cursor: pointer; display: flex; gap: 15px; align-items: center; transition: var(--transition); border-radius: 6px; border: 2px solid var(--border-color); }
+        .msg-item:hover { background: rgba(59, 130, 246, 0.05); transform: translateX(5px); }
+        .msg-icon { width: 40px; height: 40px; background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--primary); flex-shrink: 0; }
+        .msg-content { flex: 1; overflow: hidden; }
+        .msg-sender { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .msg-subject { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;}
+        .msg-time { font-size: 0.75rem; font-weight: 600; }
+
+        .empty-inbox { padding: 40px 0; text-align: center; color: var(--text-muted); font-weight: 600; }
+        .empty-inbox i { font-size: 2.5rem; margin-bottom: 15px; color: var(--border-color); opacity: 0.5; }
+
+        .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .url-box { background: rgba(59, 130, 246, 0.1); border: 2px solid var(--border-color); padding: 10px 15px; border-radius: 6px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; word-break: break-all; }
+        .url-box a { color: var(--primary); font-weight: 600; text-decoration: none; }
+        .url-box a:hover { text-decoration: underline; }
+
+        /* --- FOOTER --- */
+        footer { background: var(--card-bg); border-top: var(--border-width) solid var(--border-color); padding: 20px 0; margin-top: auto; }
+        .footer-content { max-width: 700px; margin: 0 auto; padding: 0 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+        .footer-title { font-weight: 700; font-size: 1.1rem; }
+        .footer-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+        .social-links { display: flex; gap: 15px; }
+        .social-btn { width: 40px; height: 40px; border: 2px solid var(--border-color); border-radius: 6px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; color: var(--text-main); background: var(--card-bg); text-decoration: none; box-shadow: 2px 2px 0px var(--shadow-color); transition: var(--transition); }
+        .social-btn:hover { transform: translate(2px,2px); box-shadow: 0px 0px 0px var(--shadow-color); }
+        .social-btn.tiktok:hover { background: #000; color: #fff; }
+        .social-btn.wa:hover { background: #25D366; color: #fff; }
+
+        /* --- MODALS & TOAST --- */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: var(--transition); padding: 15px; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { width: 100%; max-width: 600px; transform: scale(0.95); transition: var(--transition); display: flex; flex-direction: column; max-height: 85vh; }
+        .modal.active .modal-content { transform: scale(1); }
+        .modal-header { padding: 15px 20px; border-bottom: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .btn-close { background: var(--card-bg); border: 2px solid var(--border-color); width: 32px; height: 32px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 2px 2px 0px var(--shadow-color); }
+        .btn-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0px var(--shadow-color); background: var(--danger); color: white; }
+        .modal-info { padding: 15px 20px; background: rgba(0,0,0,0.03); border-bottom: 2px solid var(--border-color); font-size: 0.9rem; }
+        .modal-info div { margin-bottom: 8px; display: flex; }
+        .modal-info strong { width: 70px; }
+        .modal-info span { flex: 1; font-weight: 600; word-break: break-all; }
+        .modal-body { padding: 20px; overflow-y: auto; font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; }
+
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border: 2px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; }
+        .history-item span { font-weight: 700; font-size: 0.95rem; }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; background: var(--text-main); color: var(--bg-color); padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 6px; box-shadow: var(--shadow-small); display: flex; align-items: center; gap: 10px; z-index: 3000; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); font-weight: 700; }
+        body.dark-mode .toast-container { background: #ffffff; color: #000000; border-color: #000000; box-shadow: 3px 3px 0px #ffffff; }
+        .toast-container.show { transform: translateX(0); }
+
+        @media (max-width: 500px) {
+            .action-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+            .input-group-row { flex-wrap: wrap; }
+            .input-group-row input { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast-container">
+        <span id="toastIcon"></span>
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo"><i class="fas fa-envelope-open-text"></i> RAY.MAIL</div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"><i class="fas fa-moon"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="stats-grid">
+            <div class="stat-card brutal-box">
+                <div class="stat-icon"><i class="fas fa-wifi" style="color: var(--primary);"></i></div>
+                <div class="stat-info">
+                    <h4>Status</h4>
+                    <span id="statActive">Standby</span>
+                </div>
+            </div>
+            <div class="stat-card brutal-box">
+                <div class="stat-icon"><i class="fas fa-inbox" style="color: var(--success);"></i></div>
+                <div class="stat-info">
+                    <h4>Pesan Masuk</h4>
+                    <span id="statMsg">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="brutal-box mail-card" style="overflow: hidden;">
+            
+            <!-- VIEW: Kosong -->
+            <div class="mail-empty" id="mailEmptyView">
+                <i class="fas fa-paper-plane"></i>
+                <h2>Sistem Email Sementara</h2>
+                <p>Amankan email utama Anda dari spam. Buat email instan atau gunakan email lama.</p>
+                <div class="empty-actions">
+                    <button class="brutal-btn" onclick="generateNewEmail()" id="btnGenerate" style="width: 100%; max-width: 400px;">
+                        <i class="fas fa-plus"></i> Generate Email Baru
+                    </button>
+                    <button class="brutal-btn btn-outline" onclick="openHistoryModal()" style="width: 100%; max-width: 400px;">
+                        <i class="fas fa-history"></i> Riwayat Tersimpan
+                    </button>
+                    
+                    <div style="width: 100%; max-width: 400px; margin-top: 15px; padding-top: 15px; border-top: 2px dashed var(--border-color); text-align: left;">
+                        <span class="email-label" style="margin-bottom:8px;">Atau Login Manual:</span>
+                        <div style="display:flex; gap:8px;">
+                            <input type="email" id="manualOldEmailInput" class="brutal-input" placeholder="email_lama@...com">
+                            <button class="brutal-btn" onclick="loginOldEmail(document.getElementById('manualOldEmailInput').value, 'btnEmptyLogin')" id="btnEmptyLogin">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Aktif -->
+            <div class="mail-active" id="mailActiveView">
+                
+                <div class="email-display-box">
+                    <span class="email-label">Alamat Email Anda</span>
+                    <div class="input-group-row">
+                        <input type="text" id="displayEmailInput" class="brutal-input" readonly value="memuat...">
+                        
+                        <button class="brutal-btn btn-small btn-outline" id="btnEditEmail" onclick="enableEditEmail()" title="Ubah Email">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        
+                        <button class="brutal-btn btn-small btn-success" id="btnSaveEmail" onclick="saveEditedEmail()" style="display:none;" title="Login Email Ini">
+                            <i class="fas fa-check"></i>
+                        </button>
+
+                        <button class="brutal-btn btn-small" onclick="copyEmail()" id="btnCopyEmail" title="Salin Email">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="inbox-header">
+                    <h3><i class="fas fa-inbox" style="color:var(--primary);"></i> Kotak Masuk</h3>
+                    <div class="refresh-status">
+                        <div class="pulse-dot" id="pulseDot"></div> Auto-sync 30s
+                    </div>
+                </div>
+
+                <div class="inbox-list" id="inboxList"></div>
+
+                <div class="action-row">
+                    <button class="brutal-btn btn-outline" onclick="openHistoryModal()">
+                        <i class="fas fa-history"></i> Riwayat
+                    </button>
+                    <button class="brutal-btn btn-danger" onclick="openDeleteModal()">
+                        <i class="fas fa-sync-alt"></i> Ganti Baru
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-title">RAY.MAIL v2.1</div>
+            <div class="footer-desc">Developed by Ray Coding Assistant</div>
+            <div class="social-links">
+                <a href="https://tiktok.com/@rayytampann" target="_blank" class="social-btn tiktok" title="TikTok"><i class="fab fa-tiktok"></i></a>
+                <a href="https://whatsapp.com/channel/0029Vb89VkwLNSZyIqpdbX3t" target="_blank" class="social-btn wa" title="WhatsApp Channel"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: Baca Pesan -->
+    <div class="modal" id="modalReadMsg">
+        <div class="modal-content brutal-box">
+            <div class="modal-header">
+                <h3>Isi Pesan</h3>
+                <button class="btn-close" onclick="closeModal('modalReadMsg')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-info">
+                <div><strong>Dari:</strong> <span id="readSender">---</span></div>
+                <div><strong>Subjek:</strong> <span id="readSubject">---</span></div>
+                <div><strong>Waktu:</strong> <span id="readTime">---</span></div>
+            </div>
+            <div class="modal-body" id="readBody">Memuat...</div>
+        </div>
+    </div>
+
+    <!-- MODAL: Riwayat Email -->
+    <div class="modal" id="modalHistory">
+        <div class="modal-content brutal-box">
+            <div class="modal-header">
+                <h3>Riwayat Email</h3>
+                <button class="btn-close" onclick="closeModal('modalHistory')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; font-size: 0.85rem; color: var(--text-muted);">Klik email sebelumnya untuk login kembali.</p>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Konfirmasi Ganti -->
+    <div class="modal" id="modalDelete">
+        <div class="modal-content brutal-box" style="max-width: 400px; text-align: center;">
+            <div class="modal-body" style="padding: 30px 20px;">
+                <i class="fas fa-exclamation-triangle" style="font-s
